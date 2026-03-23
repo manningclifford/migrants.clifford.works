@@ -100,13 +100,13 @@
       display: grid;
       grid-template-columns: 1fr;
       gap: 2rem;
+      align-items: start;
     }
 
     @media (min-width: 900px) {
-      .main-layout.has-detail {
+      .main-layout {
         grid-template-columns: 1fr 420px;
         gap: 3rem;
-        align-items: start;
       }
     }
 
@@ -144,7 +144,7 @@
       transition: background 0.18s, color 0.18s;
       white-space: nowrap;
     }
-    .toggle-btn:first-child { border-right: 1.5px solid var(--stone-6); }
+    .toggle-btn:not(:last-child) { border-right: 1.5px solid var(--stone-6); }
     .toggle-btn.active {
       background: var(--amber-3);
       color: white;
@@ -527,6 +527,7 @@
       <div class="toggle-group">
         <button class="toggle-btn active" id="btnWhole" onclick="setMode('whole')">Full Population</button>
         <button class="toggle-btn" id="btnImm" onclick="setMode('imm')">Immigrants Only</button>
+        <button class="toggle-btn" id="btnOverseas" onclick="setMode('overseas')">% Born Overseas</button>
       </div>
     </div>
 
@@ -540,7 +541,7 @@
 
     <!-- Chart -->
     <div class="chart-title" id="chartTitle">Countries ranked by birthplace concentration</div>
-    <div class="chart-subtitle">HHI scale: 0 (diverse) &rarr; 10,000 (homogeneous) &mdash; click any row for detail</div>
+    <div class="chart-subtitle" id="chartSubtitle">HHI scale: 0 (diverse) &rarr; 10,000 (homogeneous) &mdash; click any row for detail</div>
 
     <!-- Axis -->
     <div class="axis-row">
@@ -588,26 +589,54 @@ function hhiColor(hhi) {
 function renderAxis() {
   const el = document.getElementById('axisTicks');
   el.innerHTML = '';
-  [0, 2500, 5000, 7500, 10000].forEach(v => {
-    const d = document.createElement('div');
-    d.className = 'axis-tick';
-    d.style.left = (v / 10000 * 100) + '%';
-    d.innerHTML = `<span class="axis-tick-label">${v.toLocaleString()}</span>`;
-    el.appendChild(d);
-  });
+  if (currentMode === 'overseas') {
+    [0, 10, 20, 30, 40, 50].forEach(v => {
+      if (v > MAX_FB_PCT + 2) return;
+      const d = document.createElement('div');
+      d.className = 'axis-tick';
+      d.style.left = (v / MAX_FB_PCT * 100) + '%';
+      d.innerHTML = `<span class="axis-tick-label">${v}%</span>`;
+      el.appendChild(d);
+    });
+  } else {
+    [0, 2500, 5000, 7500, 10000].forEach(v => {
+      const d = document.createElement('div');
+      d.className = 'axis-tick';
+      d.style.left = (v / 10000 * 100) + '%';
+      d.innerHTML = `<span class="axis-tick-label">${v.toLocaleString()}</span>`;
+      el.appendChild(d);
+    });
+  }
 }
 
 // ── Main chart ───────────────────────────────────────────────────
+const MAX_FB_PCT = Math.max(...DATA.map(d => d.fb_pct));
+
+function getBarMetrics(c) {
+  if (currentMode === 'overseas') {
+    return {
+      barPct: (c.fb_pct / MAX_FB_PCT * 100).toFixed(2) + '%',
+      label:  c.fb_pct.toFixed(1) + '%',
+      col:    '#0d9488',   // teal-600
+    };
+  }
+  const hhi = currentMode === 'whole' ? c.hhi_whole : c.hhi_imm;
+  return {
+    barPct: (hhi / 10000 * 100).toFixed(2) + '%',
+    label:  Math.round(hhi).toLocaleString(),
+    col:    hhiColor(hhi),
+  };
+}
+
 function renderChart() {
   const sorted = [...DATA].sort((a, b) =>
-    currentMode === 'whole'
-      ? a.hhi_whole - b.hhi_whole
-      : a.hhi_imm   - b.hhi_imm
+    currentMode === 'whole'   ? a.hhi_whole - b.hhi_whole :
+    currentMode === 'imm'     ? a.hhi_imm   - b.hhi_imm   :
+                                b.fb_pct     - a.fb_pct
   );
 
   const list = document.getElementById('barList');
 
-  // If bar-list already has rows, animate width changes; else build fresh
   if (list.children.length !== sorted.length) {
     list.innerHTML = '';
     sorted.forEach(c => {
@@ -615,40 +644,29 @@ function renderChart() {
       row.className = 'bar-row' + (c.iso3 === selectedIso ? ' selected' : '');
       row.dataset.iso = c.iso3;
       row.onclick = () => selectCountry(c.iso3);
-
-      const hhi = currentMode === 'whole' ? c.hhi_whole : c.hhi_imm;
-      const pct = (hhi / 10000 * 100).toFixed(2) + '%';
-      const col = hhiColor(hhi);
-
+      const { barPct, label, col } = getBarMetrics(c);
       row.innerHTML = `
         <div class="bar-country">${c.name}</div>
         <div class="bar-track">
-          <div class="bar-fill" style="width:${pct};background:${col}"></div>
+          <div class="bar-fill" style="width:${barPct};background:${col}"></div>
         </div>
-        <div class="bar-value">${Math.round(hhi).toLocaleString()}</div>`;
+        <div class="bar-value">${label}</div>`;
       list.appendChild(row);
     });
   } else {
-    // Re-order rows smoothly
-    // Collect current rows by iso
     const existing = {};
     [...list.children].forEach(el => { existing[el.dataset.iso] = el; });
 
-    sorted.forEach((c, i) => {
+    sorted.forEach(c => {
       const row = existing[c.iso3];
       if (!row) return;
-      const hhi = currentMode === 'whole' ? c.hhi_whole : c.hhi_imm;
-      const pct = (hhi / 10000 * 100).toFixed(2) + '%';
-      const col = hhiColor(hhi);
-      const fill = row.querySelector('.bar-fill');
-      const val  = row.querySelector('.bar-value');
-      fill.style.width = pct;
-      fill.style.background = col;
-      val.textContent = Math.round(hhi).toLocaleString();
+      const { barPct, label, col } = getBarMetrics(c);
+      row.querySelector('.bar-fill').style.width = barPct;
+      row.querySelector('.bar-fill').style.background = col;
+      row.querySelector('.bar-value').textContent = label;
       row.classList.toggle('selected', c.iso3 === selectedIso);
     });
 
-    // Re-append in new sorted order
     sorted.forEach(c => list.appendChild(existing[c.iso3]));
   }
 }
@@ -660,10 +678,14 @@ function updateCallout() {
     el.innerHTML = `<strong>Full Population mode:</strong> HHI is calculated over all residents,
       treating the domestic-born as a single group alongside each foreign origin country.
       Score of <strong>0</strong> = perfectly equal mix; <strong>10,000</strong> = everyone born in the same country.`;
-  } else {
+  } else if (currentMode === 'imm') {
     el.innerHTML = `<strong>Immigrants Only mode:</strong> HHI is renormalised within the foreign-born
       population only, ignoring the domestic-born majority. Reveals how <em>concentrated</em> the immigrant
       pool is &mdash; a score near <strong>10,000</strong> means almost all immigrants share one origin.`;
+  } else {
+    el.innerHTML = `<strong>% Born Overseas:</strong> The share of each country&rsquo;s total population
+      that was born outside its borders. Sorted highest to lowest. Countries are ranked by this figure alone,
+      independent of where those immigrants came from.`;
   }
 }
 
@@ -672,8 +694,18 @@ function setMode(mode) {
   currentMode = mode;
   document.getElementById('btnWhole').classList.toggle('active', mode === 'whole');
   document.getElementById('btnImm').classList.toggle('active', mode === 'imm');
+  document.getElementById('btnOverseas').classList.toggle('active', mode === 'overseas');
   updateCallout();
+  renderAxis();
   renderChart();
+  document.getElementById('chartTitle').textContent =
+    mode === 'overseas'
+      ? 'Countries ranked by share of population born overseas'
+      : 'Countries ranked by birthplace concentration';
+  document.getElementById('chartSubtitle').textContent =
+    mode === 'overseas'
+      ? 'Sorted highest to lowest — click any row for origin detail'
+      : 'HHI scale: 0 (diverse) → 10,000 (homogeneous) — click any row for detail';
   if (selectedIso) renderDetail(DATA.find(d => d.iso3 === selectedIso));
 }
 
@@ -724,8 +756,6 @@ function renderOriginList(c) {
 function renderDetail(c) {
   if (!c) return;
   const area = document.getElementById('detailArea');
-  const layout = document.getElementById('mainLayout');
-  layout.classList.add('has-detail');
   showingAll = false;
 
   area.innerHTML = `
@@ -784,7 +814,6 @@ function expandAll() {
 
 function closeDetail() {
   selectedIso = null;
-  document.getElementById('mainLayout').classList.remove('has-detail');
   document.getElementById('detailArea').innerHTML = `
     <div class="detail-placeholder" id="detailPlaceholder">
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
