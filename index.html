@@ -48,13 +48,13 @@
     /* ── HEADER ─────────────────────────────────────────────── */
     .site-header {
       border-bottom: 1px solid var(--stone-6);
-      padding: 3rem 0 2rem;
+      padding: 2rem 0 1.5rem;
       margin-bottom: 0;
     }
     .site-header .inner {
-      max-width: 1100px;
+      max-width: 100%;
       margin: 0 auto;
-      padding: 0 2rem;
+      padding: 0 2in;
     }
     .eyebrow {
       font-family: 'JetBrains Mono', monospace;
@@ -80,7 +80,7 @@
     .header-desc {
       font-size: 1.05rem;
       color: var(--stone-3);
-      max-width: 640px;
+      max-width: 100%;
       line-height: 1.7;
     }
     .source-note {
@@ -94,9 +94,9 @@
 
     /* ── MAIN LAYOUT ─────────────────────────────────────────── */
     .main-layout {
-      max-width: 1100px;
+      max-width: 100%;
       margin: 0 auto;
-      padding: 2rem 2rem 4rem;
+      padding: 1.5rem 2in 3rem;
       display: grid;
       grid-template-columns: 1fr;
       gap: 2rem;
@@ -105,8 +105,9 @@
 
     @media (min-width: 900px) {
       .main-layout {
-        grid-template-columns: 1fr 420px;
+        grid-template-columns: 1fr 546px;
         gap: 3rem;
+        align-items: stretch;
       }
     }
 
@@ -115,7 +116,7 @@
       display: flex;
       align-items: center;
       gap: 1rem;
-      margin-bottom: 1.5rem;
+      margin-bottom: 0.75rem;
       flex-wrap: wrap;
     }
     .toggle-label {
@@ -154,21 +155,82 @@
       color: var(--stone-2);
     }
 
-    /* ── CALLOUT ─────────────────────────────────────────────── */
-    .callout {
-      border-left: 3px solid var(--amber-4);
-      background: var(--amber-9);
-      padding: 0.9rem 1.1rem;
-      border-radius: 0 6px 6px 0;
-      margin-bottom: 1.5rem;
-      font-size: 0.87rem;
-      color: var(--stone-3);
-      line-height: 1.65;
+    /* ── TOOLTIP ─────────────────────────────────────────────── */
+    .tooltip-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
     }
-    .callout strong { color: var(--stone-1); }
+    .tooltip-icon {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      border: 1.5px solid var(--stone-5);
+      color: var(--stone-5);
+      font-size: 0.65rem;
+      font-family: 'JetBrains Mono', monospace;
+      display: flex; align-items: center; justify-content: center;
+      cursor: default;
+      flex-shrink: 0;
+      transition: border-color 0.15s, color 0.15s;
+      user-select: none;
+    }
+    .tooltip-wrap:hover .tooltip-icon {
+      border-color: var(--amber-3);
+      color: var(--amber-3);
+    }
+    .tooltip-box {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      width: 320px;
+      background: var(--stone-1);
+      color: var(--stone-7);
+      font-size: 0.8rem;
+      font-family: 'Lora', serif;
+      line-height: 1.6;
+      padding: 0.85rem 1rem;
+      border-radius: 7px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+      z-index: 100;
+      pointer-events: none;
+    }
+    .tooltip-box::before {
+      content: '';
+      position: absolute;
+      top: -5px; left: 6px;
+      width: 10px; height: 10px;
+      background: var(--stone-1);
+      transform: rotate(45deg);
+      border-radius: 2px;
+    }
+    .tooltip-box strong { color: white; }
+    .tooltip-box em { color: var(--amber-6); font-style: normal; }
+    .tooltip-wrap:hover .tooltip-box { display: block; }
 
     /* ── CHART PANEL ─────────────────────────────────────────── */
     .chart-panel { min-width: 0; }
+
+    #detailArea {
+      display: flex;
+      flex-direction: column;
+    }
+    #detailArea .detail-panel,
+    #detailArea .detail-placeholder {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+    }
+    #detailArea.is-expanded .detail-panel {
+      flex: none;
+      overflow-y: visible;
+    }
+    #detailArea .detail-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
     .chart-title {
       font-family: 'Playfair Display', serif;
       font-size: 1.1rem;
@@ -183,15 +245,15 @@
       margin-bottom: 1.2rem;
     }
 
-    .bar-list { display: flex; flex-direction: column; gap: 1px; }
+    .bar-list { display: flex; flex-direction: column; gap: 0; }
 
     .bar-row {
       display: grid;
-      grid-template-columns: 140px 1fr auto;
+      grid-template-columns: 154px 1fr auto;
       align-items: center;
       gap: 0.45rem;
-      padding: 0.12rem 0.5rem;
-      border-radius: 4px;
+      padding: 0.06rem 0.5rem;
+      border-radius: 3px;
       cursor: pointer;
       border: 1.5px solid transparent;
       transition: background 0.15s, border-color 0.15s;
@@ -216,7 +278,7 @@
     .bar-row.selected .bar-country { color: var(--amber-2); font-weight: 600; }
 
     .bar-track {
-      height: 14px;
+      height: 11px;
       background: var(--stone-7);
       border-radius: 3px;
       overflow: hidden;
@@ -240,7 +302,7 @@
     /* axis ticks */
     .axis-row {
       display: grid;
-      grid-template-columns: 140px 1fr auto;
+      grid-template-columns: 154px 1fr auto;
       gap: 0.6rem;
       padding: 0 0.5rem;
       margin-bottom: 0.3rem;
@@ -491,12 +553,43 @@
       opacity: 0.3;
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 899px) {
       .bar-row { grid-template-columns: 100px 1fr auto; }
       .bar-country { font-size: 0.78rem; }
       .axis-row { grid-template-columns: 100px 1fr auto; }
       h1 { font-size: 2rem; }
-      .hhi-cards { grid-template-columns: 1fr; }
+
+      /* Hide sidebar on mobile — detail shown as overlay instead */
+      #detailArea { display: none; }
+
+      /* Full-screen modal overlay */
+      #mobileOverlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        background: var(--cream);
+        overflow-y: auto;
+        padding: 1rem 1.25rem 2rem;
+        animation: fadeSlideIn 0.2s ease;
+      }
+      #mobileOverlay.open { display: block; }
+      #mobileOverlay .detail-panel {
+        border: none;
+        border-radius: 0;
+        padding: 0;
+        animation: none;
+      }
+      #mobileOverlay .detail-close {
+        position: fixed;
+        top: 0.75rem;
+        right: 1rem;
+        z-index: 201;
+      }
+    }
+
+    @media (min-width: 900px) {
+      #mobileOverlay { display: none !important; }
     }
   </style>
 </head>
@@ -505,7 +598,7 @@
 <header class="site-header">
   <div class="inner">
     <div class="eyebrow">Data Essay &mdash; Migration &amp; Identity</div>
-    <h1>Birthplace<br/><em>Diversity</em></h1>
+    <h1>Birthplace <em>Diversity</em></h1>
     <p class="header-desc">
       How concentrated is each country&rsquo;s population by place of birth?
       The Herfindahl&ndash;Hirschman Index measures diversity across OECD nations
@@ -529,14 +622,12 @@
         <button class="toggle-btn" id="btnImm" onclick="setMode('imm')">Immigrants Only</button>
         <button class="toggle-btn" id="btnOverseas" onclick="setMode('overseas')">% Born Overseas</button>
       </div>
-    </div>
-
-    <!-- Callout -->
-    <div class="callout" id="calloutBox">
-      <strong>Full Population mode:</strong> HHI is calculated over all residents,
-      treating the domestic-born as a single group alongside each origin country.
-      Score of <strong>0</strong> = perfectly equal mix from all places;
-      <strong>10,000</strong> = everyone born in the same country.
+      <div class="tooltip-wrap">
+        <div class="tooltip-icon">?</div>
+        <div class="tooltip-box" id="calloutBox">
+          <strong>Full Population HHI:</strong> Calculated over all residents — domestic-born as one group, each origin country separately. <em>0</em> = perfectly diverse, <em>10,000</em> = everyone from the same country.
+        </div>
+      </div>
     </div>
 
     <!-- Chart -->
@@ -675,17 +766,11 @@ function renderChart() {
 function updateCallout() {
   const el = document.getElementById('calloutBox');
   if (currentMode === 'whole') {
-    el.innerHTML = `<strong>Full Population mode:</strong> HHI is calculated over all residents,
-      treating the domestic-born as a single group alongside each foreign origin country.
-      Score of <strong>0</strong> = perfectly equal mix; <strong>10,000</strong> = everyone born in the same country.`;
+    el.innerHTML = `<strong>Full Population HHI:</strong> Calculated over all residents — domestic-born as one group, each origin country separately. <em>0</em> = perfectly diverse, <em>10,000</em> = everyone from the same country.`;
   } else if (currentMode === 'imm') {
-    el.innerHTML = `<strong>Immigrants Only mode:</strong> HHI is renormalised within the foreign-born
-      population only, ignoring the domestic-born majority. Reveals how <em>concentrated</em> the immigrant
-      pool is &mdash; a score near <strong>10,000</strong> means almost all immigrants share one origin.`;
+    el.innerHTML = `<strong>Immigrants Only HHI:</strong> Renormalised within the foreign-born population only. Reveals how concentrated the immigrant pool is — <em>10,000</em> means almost all immigrants share a single origin.`;
   } else {
-    el.innerHTML = `<strong>% Born Overseas:</strong> The share of each country&rsquo;s total population
-      that was born outside its borders. Sorted highest to lowest. Countries are ranked by this figure alone,
-      independent of where those immigrants came from.`;
+    el.innerHTML = `<strong>% Born Overseas:</strong> The share of the total population born outside the country's borders. Sorted highest to lowest, independent of where those immigrants came from.`;
   }
 }
 
@@ -757,6 +842,7 @@ function renderDetail(c) {
   if (!c) return;
   const area = document.getElementById('detailArea');
   showingAll = false;
+  area.classList.remove('is-expanded');
 
   area.innerHTML = `
     <div class="detail-panel" id="detailPanel">
@@ -770,22 +856,9 @@ function renderDetail(c) {
         <div class="stat-badge"><span>Foreign-born</span> ${c.fb_pct.toFixed(1)}%</div>
         <div class="stat-badge"><span>Total pop.</span> ${(c.population/1e6).toFixed(1)}M</div>
         <div class="stat-badge"><span>Origins tracked</span> ${c.n_origins}</div>
+        <div class="stat-badge"><span>Full pop. HHI</span> ${Math.round(c.hhi_whole).toLocaleString()}</div>
+        <div class="stat-badge"><span>Immigrants HHI</span> ${Math.round(c.hhi_imm).toLocaleString()}</div>
       </div>
-
-      <div class="hhi-cards">
-        <div class="hhi-card ${currentMode === 'whole' ? 'active-metric' : ''}">
-          <div class="hhi-card-label">Full Population HHI</div>
-          <div class="hhi-card-value">${Math.round(c.hhi_whole).toLocaleString()}</div>
-          <div class="hhi-mini-bar"><div class="hhi-mini-fill" style="width:${(c.hhi_whole/100).toFixed(1)}%"></div></div>
-        </div>
-        <div class="hhi-card ${currentMode === 'imm' ? 'active-metric' : ''}">
-          <div class="hhi-card-label">Immigrants Only HHI</div>
-          <div class="hhi-card-value">${Math.round(c.hhi_imm).toLocaleString()}</div>
-          <div class="hhi-mini-bar"><div class="hhi-mini-fill" style="width:${(c.hhi_imm/100).toFixed(1)}%"></div></div>
-        </div>
-      </div>
-
-      <hr class="divider"/>
 
       <div class="detail-section-title">Origin breakdown</div>
       <div class="detail-section-sub">
@@ -809,11 +882,15 @@ function renderDetail(c) {
 
 function expandAll() {
   showingAll = true;
+  document.getElementById('detailArea').classList.add('is-expanded');
   renderOriginList(DATA.find(d => d.iso3 === selectedIso));
 }
 
 function closeDetail() {
   selectedIso = null;
+  document.getElementById('mobileOverlay').classList.remove('open');
+  document.getElementById('mobileOverlay').innerHTML = '';
+  document.getElementById('detailArea').classList.remove('is-expanded');
   document.getElementById('detailArea').innerHTML = `
     <div class="detail-placeholder" id="detailPlaceholder">
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -831,18 +908,20 @@ function selectCountry(iso) {
   const c = DATA.find(d => d.iso3 === iso);
   renderChart();
   renderDetail(c);
-  // On mobile, scroll to detail
-  setTimeout(() => {
-    const panel = document.getElementById('detailPanel');
-    if (panel && window.innerWidth < 900) {
-      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, 100);
+  // On mobile, show overlay
+  if (window.innerWidth < 900) {
+    const overlay = document.getElementById('mobileOverlay');
+    overlay.innerHTML = document.getElementById('detailPanel')
+      ? document.getElementById('detailArea').innerHTML : '';
+    overlay.classList.add('open');
+    overlay.scrollTop = 0;
+  }
 }
 
 // ── Init ─────────────────────────────────────────────────────────
 renderAxis();
 renderChart();
 </script>
+<div id="mobileOverlay"></div>
 </body>
 </html>
